@@ -1,0 +1,8 @@
+# Binary executable
+/backend
+
+# Environment variables
+configs/.env
+
+# Log files
+*.log 
