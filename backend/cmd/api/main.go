@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 
+	"documind/backend/internal/handlers"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -21,7 +23,7 @@ func main() {
 	if port == "" {
 		port = "8080" // Port mặc định nếu không được thiết lập
 	}
-
+	
 	r := gin.Default()
 
 	r.GET("/ping", func(c *gin.Context) {
@@ -30,6 +32,9 @@ func main() {
 		})
 	})
 
+	// Đăng ký route cho việc phân tích file
+	r.POST("/api/v1/analyze", handlers.AnalyzeHandler) 
+
 	log.Printf("Server starting on port %s", port)
 	r.Run(":" + port)
-} 
+}
