@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"documind/backend/internal/models"
 	"documind/backend/internal/services" // Import service AI bạn vừa tạo
-	"encoding/json"                      // Import thư viện để xử lý JSON
+	"documind/backend/pkg/database"
+	"encoding/json" // Import thư viện để xử lý JSON
 	"io"
 	"log"
 	"net/http"
@@ -71,6 +73,16 @@ func AnalyzeHandler(c *gin.Context) {
 		return
 	}
 
-	// 4. Trả về kết quả có cấu trúc hoàn chỉnh cho frontend
+	// 4. Persist the result to the database
+	analysisModel := models.Analysis{
+		Summary:        analysisResp.Summary,
+		KeyClauses:     analysisResp.KeyClauses,
+		PotentialRisks: analysisResp.PotentialRisks,
+	}
+	if err := database.DB.Create(&analysisModel).Error; err != nil {
+		log.Printf("Failed to save analysis to DB: %v", err)
+	}
+
+	// 5. Trả về kết quả có cấu trúc hoàn chỉnh cho frontend
 	c.JSON(http.StatusOK, analysisResp)
 }

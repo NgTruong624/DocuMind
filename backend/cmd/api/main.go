@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"documind/backend/internal/handlers"
+	"documind/backend/pkg/database"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -16,6 +17,13 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
+	// Initialize database connection
+	_, dbErr := database.Connect()
+	if dbErr != nil {
+		log.Fatalf("Database connection failed: %v", dbErr)
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
