@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +21,6 @@ type AnalysisResponse struct {
 
 // AnalyzeHandler xử lý yêu cầu phân tích file
 func AnalyzeHandler(c *gin.Context) {
-	// 1. Lấy và đọc file (Phần này giữ nguyên như cũ)
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "File upload failed: " + err.Error()})
@@ -33,14 +33,28 @@ func AnalyzeHandler(c *gin.Context) {
 	}
 	defer file.Close()
 
-	contentBytes, err := io.ReadAll(file)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not read file content: " + err.Error()})
+	// Detect file type using Content-Type
+	contentType := fileHeader.Header.Get("Content-Type")
+	var textContent string
+	switch {
+	case strings.Contains(contentType, "pdf"):
+		textContent, err = services.ExtractTextFromPDF(file)
+	case strings.Contains(contentType, "officedocument.wordprocessingml.document"), strings.Contains(contentType, "msword"):
+		textContent, err = services.ExtractTextFromDOCX(file)
+	case strings.Contains(contentType, "text/plain"):
+		var contentBytes []byte
+		contentBytes, err = io.ReadAll(file)
+		textContent = string(contentBytes)
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File format not supported"})
 		return
 	}
-	textContent := string(contentBytes)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not extract text: " + err.Error()})
+		return
+	}
 
-	// 2. Gọi AI Service để phân tích văn bản (Đây là logic mới)
+	// 2. Gọi AI Service để phân tích văn bản
 	log.Println("Bắt đầu gọi AI để phân tích...")
 	aiResultString, err := services.AnalyzeText(textContent)
 	if err != nil {
@@ -48,16 +62,15 @@ func AnalyzeHandler(c *gin.Context) {
 		return
 	}
 
-	// 3. Parse chuỗi JSON từ AI vào struct (Đây là logic mới)
+	// 3. Parse chuỗi JSON từ AI vào struct
 	var analysisResp AnalysisResponse
 	err = json.Unmarshal([]byte(aiResultString), &analysisResp)
 	if err != nil {
-		// Ghi log lỗi chi tiết hơn, bao gồm cả chuỗi AI trả về để dễ gỡ lỗi
 		log.Printf("Lỗi khi parse JSON từ AI: %v. \nChuỗi nhận được: %s", err, aiResultString)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse AI response."})
 		return
 	}
 
-	// 4. Trả về kết quả có cấu trúc hoàn chỉnh cho frontend (Cập nhật)
+	// 4. Trả về kết quả có cấu trúc hoàn chỉnh cho frontend
 	c.JSON(http.StatusOK, analysisResp)
 }
