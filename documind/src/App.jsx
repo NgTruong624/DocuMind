@@ -26,12 +26,18 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-2 md:px-0">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl md:text-3xl font-bold text-center mb-8 text-gray-800">Công cụ Phân tích & Tóm tắt Hợp đồng</h1>
+    <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+      <div className="w-full max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8 mt-8 mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-center mb-8 text-gray-800">
+          Công cụ Phân tích & Tóm tắt Hợp đồng
+        </h1>
         <FileUploader onFileSelected={handleFileSelected} isLoading={isLoading} />
         {isLoading && <LoadingSpinner />}
-        {error && <div className="text-red-600 text-center mt-4">{error}</div>}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center mt-4">
+            {error}
+          </div>
+        )}
         <ResultsDisplay analysisResult={analysisResult} />
       </div>
     </div>

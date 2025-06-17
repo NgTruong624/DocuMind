@@ -37,8 +37,11 @@ export default function FileUploader({ onFileSelected, isLoading }) {
   };
 
   return (
-    <div className={`border-2 border-dashed rounded-lg p-6 text-center bg-white shadow-sm transition-colors ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}
-      onDragEnter={handleDrag} onDragOver={handleDrag} onDragLeave={handleDrag} onDrop={handleDrop}>
+    <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center transition-colors hover:border-blue-500 hover:bg-slate-50">
+      <ArrowUpTrayIcon className="w-12 h-12 mx-auto text-slate-400" />
+      <p className="mt-4 text-slate-500">
+        Drag and drop a file here, or <span className="font-semibold text-blue-600 cursor-pointer">choose file</span>
+      </p>
       <input
         type="file"
         accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -47,8 +50,6 @@ export default function FileUploader({ onFileSelected, isLoading }) {
         onChange={handleChange}
         disabled={isLoading}
       />
-      <ArrowUpTrayIcon className="mx-auto h-10 w-10 text-blue-500" />
-      <p className="mt-2 text-gray-700">Kéo & thả file PDF/DOCX vào đây hoặc <span className="text-blue-600 underline cursor-pointer" onClick={() => inputRef.current.click()}>chọn file</span> từ máy tính.</p>
     </div>
   );
 } 
