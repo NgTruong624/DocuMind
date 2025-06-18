@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"io"
 
+	// THAY ĐỔI: Sử dụng đường dẫn import chính xác từ Github
+	"baliance.com/gooxml/document"
 	"github.com/ledongthuc/pdf"
-	"github.com/unidoc/unioffice/document"
 )
 
 // ExtractTextFromPDF extracts all text from a PDF file given as an io.Reader
 func ExtractTextFromPDF(r io.Reader) (string, error) {
+    // Giữ nguyên logic cho PDF
     data, err := io.ReadAll(r)
     if err != nil {
         return "", fmt.Errorf("failed to read PDF data: %w", err)
@@ -38,14 +40,17 @@ func ExtractTextFromPDF(r io.Reader) (string, error) {
 
 // ExtractTextFromDOCX extracts all text from a DOCX file given as an io.Reader
 func ExtractTextFromDOCX(r io.Reader) (string, error) {
-    data, err := io.ReadAll(r)
-    if err != nil {
-        return "", fmt.Errorf("failed to read DOCX data: %w", err)
-    }
-    doc, err := document.Read(bytes.NewReader(data), int64(len(data)))
-    if err != nil {
-        return "", fmt.Errorf("failed to read DOCX: %w", err)
-    }
+	// Logic sử dụng thư viện mới vẫn giữ nguyên
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return "", fmt.Errorf("failed to read DOCX data into buffer: %w", err)
+	}
+	reader := bytes.NewReader(data)
+
+	doc, err := document.Read(reader, int64(reader.Len()))
+	if err != nil {
+		return "", fmt.Errorf("failed to open DOCX with new library: %w", err)
+	}
 
 	var buf bytes.Buffer
 	for _, para := range doc.Paragraphs() {
@@ -55,4 +60,4 @@ func ExtractTextFromDOCX(r io.Reader) (string, error) {
 		buf.WriteString("\n")
 	}
 	return buf.String(), nil
-} 
+}
