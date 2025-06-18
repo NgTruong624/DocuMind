@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"crypto/sha256"
 	"documind/backend/internal/models"
 	"documind/backend/internal/services"
 	"documind/backend/pkg/database"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"log"
@@ -35,15 +37,44 @@ func AnalyzeHandler(c *gin.Context) {
 	}
 	defer file.Close()
 
-	// Detect file type using Content-Type AND file extension as a fallback
+	// Đọc toàn bộ nội dung file vào bộ nhớ
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not read file: " + err.Error()})
+		return
+	}
+
+	// Tính toán hash của file
+	hasher := sha256.New()
+	hasher.Write(fileBytes)
+	fileHash := hex.EncodeToString(hasher.Sum(nil))
+
+	// Kiểm tra xem file đã được phân tích trước đó chưa
+	var existingAnalysis models.Analysis
+	result := database.DB.Where("file_hash = ?", fileHash).First(&existingAnalysis)
+	if result.Error == nil {
+		// File đã được phân tích trước đó, trả về kết quả cũ
+		analysisResp := AnalysisResponse{
+			Summary:        existingAnalysis.Summary,
+			KeyClauses:     existingAnalysis.KeyClauses,
+			PotentialRisks: existingAnalysis.PotentialRisks,
+		}
+		c.JSON(http.StatusOK, analysisResp)
+		return
+	}
+
+	// Nếu file chưa được phân tích, tiếp tục xử lý
 	contentType := fileHeader.Header.Get("Content-Type")
 	filename := strings.ToLower(fileHeader.Filename)
 	var textContent string
 
+	// Tạo một io.Reader từ fileBytes để sử dụng lại
+	fileReader := strings.NewReader(string(fileBytes))
+
 	switch {
 	// Kiểm tra PDF
 	case strings.Contains(contentType, "pdf") || strings.HasSuffix(filename, ".pdf"):
-		textContent, err = services.ExtractTextFromPDF(file)
+		textContent, err = services.ExtractTextFromPDF(fileReader)
 		if err != nil {
 			log.Printf("Error extracting text from PDF '%s': %v", filename, err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Không thể trích xuất nội dung từ file PDF."})
@@ -52,7 +83,7 @@ func AnalyzeHandler(c *gin.Context) {
 
 	// Kiểm tra DOCX
 	case strings.Contains(contentType, "officedocument.wordprocessingml.document") || strings.HasSuffix(filename, ".docx"):
-		textContent, err = services.ExtractTextFromDOCX(file)
+		textContent, err = services.ExtractTextFromDOCX(fileReader)
 		if err != nil {
 			log.Printf("Error extracting text from DOCX '%s': %v", filename, err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Không thể trích xuất nội dung từ file DOCX."})
@@ -61,7 +92,7 @@ func AnalyzeHandler(c *gin.Context) {
 
 	// Kiểm tra DOC
 	case strings.Contains(contentType, "msword") || strings.HasSuffix(filename, ".doc"):
-		textContent, err = services.ExtractTextFromDOCX(file)
+		textContent, err = services.ExtractTextFromDOCX(fileReader)
 		if err != nil {
 			log.Printf("Error extracting text from DOC '%s': %v", filename, err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Không thể trích xuất nội dung từ file DOC."})
@@ -70,14 +101,7 @@ func AnalyzeHandler(c *gin.Context) {
 
 	// Kiểm tra TXT
 	case strings.Contains(contentType, "text/plain") || strings.HasSuffix(filename, ".txt"):
-		var contentBytes []byte
-		contentBytes, err = io.ReadAll(file)
-		if err != nil {
-			log.Printf("Error reading plain text file '%s': %v", filename, err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Không thể đọc nội dung từ file text."})
-			return
-		}
-		textContent = string(contentBytes)
+		textContent = string(fileBytes)
 
 	// Trường hợp không hỗ trợ
 	default:
@@ -86,7 +110,7 @@ func AnalyzeHandler(c *gin.Context) {
 		return
 	}
 
-	// 2. Gọi AI Service để phân tích văn bản
+	// Gọi AI Service để phân tích văn bản
 	log.Println("Bắt đầu gọi AI để phân tích...")
 	aiResultString, err := services.AnalyzeText(textContent)
 	if err != nil {
@@ -94,7 +118,7 @@ func AnalyzeHandler(c *gin.Context) {
 		return
 	}
 
-	// 3. Parse chuỗi JSON từ AI vào struct
+	// Parse chuỗi JSON từ AI vào struct
 	cleanedJSONString := cleanAIResponse(aiResultString)
 
 	var analysisResp AnalysisResponse
@@ -105,17 +129,18 @@ func AnalyzeHandler(c *gin.Context) {
 		return
 	}
 
-	// 4. Persist the result to the database
+	// Lưu kết quả vào database cùng với file hash
 	analysisModel := models.Analysis{
 		Summary:        analysisResp.Summary,
 		KeyClauses:     analysisResp.KeyClauses,
 		PotentialRisks: analysisResp.PotentialRisks,
+		FileHash:       fileHash,
 	}
 	if err := database.DB.Create(&analysisModel).Error; err != nil {
 		log.Printf("Failed to save analysis to DB: %v", err)
 	}
 
-	// 5. Trả về kết quả có cấu trúc hoàn chỉnh cho frontend
+	// Trả về kết quả có cấu trúc hoàn chỉnh cho frontend
 	c.JSON(http.StatusOK, analysisResp)
 }
 
