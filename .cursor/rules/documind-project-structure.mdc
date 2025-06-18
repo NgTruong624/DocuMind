@@ -1,0 +1,56 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# DocuMind Project Structure and Navigation Rules
+
+## Overview
+
+DocuMind is an AI-powered contract analysis tool. It consists of a Go backend (API, services, models) and a React frontend (UI, components). The backend handles file upload, text extraction, AI analysis, and database storage. The frontend provides a modern UI for uploading files and displaying results.
+
+---
+
+## Backend (Go)
+
+- **Entry Point:** The backend API starts from [main.go](mdc:backend/cmd/api/main.go).
+- **Configuration:** Environment variables are loaded from configs/.env (see .gitignore for sensitive files).
+- **Database:** Connection and migration logic is in [database.go](mdc:backend/pkg/database/database.go). Models are defined in [analysis.go](mdc:backend/internal/models/analysis.go).
+- **API Endpoints:** Handlers for analysis and retrieval are in [analysis_handler.go](mdc:backend/internal/handlers/analysis_handler.go).
+- **Text Extraction:** PDF and DOCX extraction logic is in [text_extractor.go](mdc:backend/internal/services/text_extractor.go).
+- **AI Analysis:** Integration with Google Gemini API is in [ai_analyzer.go](mdc:backend/internal/services/ai_analyzer.go).
+- **Dependencies:** Managed in [go.mod](mdc:backend/go.mod).
+
+---
+
+## Frontend (React + Vite)
+
+- **Entry Point:** The app starts from [main.jsx](mdc:documind/src/main.jsx) and [App.jsx](mdc:documind/src/App.jsx).
+- **Components:** UI components are in [components/](mdc:documind/src/components), including:
+  - File upload: [FileUploader.jsx](mdc:documind/src/components/FileUploader.jsx)
+  - File info: [FileInfo.jsx](mdc:documind/src/components/FileInfo.jsx)
+  - Results display: [ResultsDisplay.jsx](mdc:documind/src/components/ResultsDisplay.jsx)
+  - Loading spinner: [LoadingSpinner.jsx](mdc:documind/src/components/LoadingSpinner.jsx)
+- **API Service:** Frontend calls backend via [analysisService.js](mdc:documind/src/api/analysisService.js).
+- **Styling:** Uses Tailwind CSS, configured in [tailwind.config.js](mdc:documind/tailwind.config.js) and [index.css](mdc:documind/src/index.css).
+- **Build & Lint:** Scripts and dependencies are in [package.json](mdc:documind/package.json), with Vite config in [vite.config.js](mdc:documind/vite.config.js) and ESLint config in [eslint.config.js](mdc:documind/eslint.config.js).
+- **Static Assets:** Place images and static files in [assets/](mdc:documind/src/assets) and [public/](mdc:documind/public).
+
+---
+
+## Development & Environment
+
+- **Backend:** Start with `go run main.go` from [cmd/api/](mdc:backend/cmd/api).
+- **Frontend:** Start with `npm run dev` from [documind/](mdc:documind).
+- **Environment Variables:** Set `GEMINI_API_KEY` and `DATABASE_URL` in configs/.env (see project [README.md](mdc:README.md) for details).
+
+---
+
+## Referencing Files in Rules
+
+When referencing a file, use the format `[filename.ext](mdc:relative/path/to/filename.ext)` as shown above.
+
+---
+
+If you need to expand or update these rules, follow the Cursor Rules Instructions and reference files as described.
+
