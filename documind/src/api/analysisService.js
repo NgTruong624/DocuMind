@@ -27,4 +27,20 @@ export async function analyzeContract(file) {
     });
     throw error;
   }
+}
+
+export async function contractChat({ fileHash, contractText, question }) {
+  try {
+    const response = await axios.post(
+      (import.meta.env.VITE_CHAT_API_URL || 'http://localhost:8080/api/v1/contract-chat'),
+      {
+        file_hash: fileHash || '',
+        contract_text: contractText || '',
+        question,
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 } 

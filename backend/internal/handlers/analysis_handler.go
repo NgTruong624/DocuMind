@@ -13,12 +13,14 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type AnalysisResponse struct {
+	FileHash       string   `json:"file_hash"`
 	Summary        string   `json:"summary"`
 	KeyClauses     []string `json:"key_clauses"`
 	PotentialRisks []string `json:"potential_risks"`
@@ -37,6 +39,16 @@ type AnalysisDetailResponse struct {
 	Summary        string   `json:"summary"`
 	KeyClauses     []string `json:"key_clauses"`
 	PotentialRisks []string `json:"potential_risks"`
+}
+
+type ContractChatRequest struct {
+	FileHash     string `json:"file_hash"`
+	ContractText string `json:"contract_text"`
+	Question     string `json:"question"`
+}
+
+type ContractChatResponse struct {
+	Answer string `json:"answer"`
 }
 
 func AnalyzeHandler(c *gin.Context) {
@@ -71,6 +83,7 @@ func AnalyzeHandler(c *gin.Context) {
 		if result.Error == nil {
 			log.Printf("Cache hit for file hash: %s", fileHash)
 			c.JSON(http.StatusOK, AnalysisResponse{
+				FileHash:       existingAnalysis.FileHash,
 				Summary:        existingAnalysis.AnalysisDetail.Summary,
 				KeyClauses:     existingAnalysis.AnalysisDetail.KeyClauses,
 				PotentialRisks: existingAnalysis.AnalysisDetail.PotentialRisks,
@@ -165,7 +178,12 @@ func AnalyzeHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, analysisResp)
+	c.JSON(http.StatusOK, AnalysisResponse{
+		FileHash:       fileHash,
+		Summary:        analysisResp.Summary,
+		KeyClauses:     analysisResp.KeyClauses,
+		PotentialRisks: analysisResp.PotentialRisks,
+	})
 }
 
 func cleanAIResponse(s string) string {
@@ -216,4 +234,42 @@ func GetAnalysisDetail(c *gin.Context) {
 		PotentialRisks: detail.PotentialRisks,
 	}
 	c.JSON(http.StatusOK, resp)
+}
+
+func ContractChatHandler(c *gin.Context) {
+	var req ContractChatRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	if utf8.RuneCountInString(req.Question) == 0 || utf8.RuneCountInString(req.Question) > 300 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Câu hỏi phải từ 1 đến 300 ký tự."})
+		return
+	}
+
+	var contractText string
+	if req.FileHash != "" {
+		// Lấy nội dung hợp đồng từ DB
+		var analysis models.Analysis
+		result := database.DB.Where("file_hash = ?", req.FileHash).Preload("AnalysisDetail").First(&analysis)
+		if result.Error != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Không tìm thấy hợp đồng với file_hash đã cung cấp."})
+			return
+		}
+		contractText = analysis.AnalysisDetail.Summary + "\n" + strings.Join(analysis.AnalysisDetail.KeyClauses, "\n") + "\n" + strings.Join(analysis.AnalysisDetail.PotentialRisks, "\n")
+	} else if req.ContractText != "" {
+		contractText = req.ContractText
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cần cung cấp file_hash hoặc contract_text."})
+		return
+	}
+
+	aiAnswer, err := services.AskContractQuestion(contractText, req.Question)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "AI trả lời thất bại: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, ContractChatResponse{Answer: aiAnswer})
 }

@@ -50,6 +50,8 @@ func main() {
 
 	r.POST("/api/v1/analyze", handlers.AnalyzeHandler)
 
+	r.POST("/api/v1/contract-chat", handlers.ContractChatHandler)
+
 	r.GET("/api/v1/analyses", handlers.GetAnalyses)
 	r.GET("/api/v1/analyses/:id", handlers.GetAnalysisDetail)
 

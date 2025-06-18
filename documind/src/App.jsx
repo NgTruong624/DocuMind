@@ -4,6 +4,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 import ResultsDisplay from './components/ResultsDisplay';
 import FileInfo from './components/FileInfo';
 import { analyzeContract } from './api/analysisService';
+import ContractChatBox from './components/ContractChatBox';
 
 export default function App() {
   const [file, setFile] = useState(null);
@@ -58,6 +59,14 @@ export default function App() {
           </div>
         )}
         <ResultsDisplay analysisResult={analysisResult} />
+        {analysisResult && (
+          <ContractChatBox
+            fileHash={analysisResult.file_hash || null}
+            contractText={null}
+            resetTrigger={file}
+            disabled={isLoading}
+          />
+        )}
       </div>
     </div>
   );

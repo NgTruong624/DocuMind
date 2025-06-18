@@ -72,3 +72,47 @@ func AnalyzeText(textContent string) (string, error) {
 
 	return "", fmt.Errorf("failed to extract text from Gemini API response")
 }
+
+// AskContractQuestion gửi câu hỏi về hợp đồng cho AI và trả về câu trả lời tự nhiên
+func AskContractQuestion(contractText, question string) (string, error) {
+    ctx := context.Background()
+    apiKey := os.Getenv("GEMINI_API_KEY")
+    if apiKey == "" {
+        return "", fmt.Errorf("GEMINI_API_KEY environment variable is not set")
+    }
+
+    client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
+    if err != nil {
+        return "", fmt.Errorf("failed to initialize Gemini client: %w", err)
+    }
+    defer client.Close()
+
+    model := client.GenerativeModel("gemini-1.5-flash")
+
+    prompt := fmt.Sprintf(`
+Bạn là một trợ lý pháp lý. Dựa trên nội dung hợp đồng sau, hãy trả lời NGẮN GỌN, rõ ràng, bằng tiếng Việt cho câu hỏi của người dùng. 
+Chỉ trả lời nội dung liên quan, không cần giải thích thêm, không trả về JSON, chỉ trả lời như hội thoại tự nhiên.
+
+Nội dung hợp đồng:
+---
+%s
+---
+
+Câu hỏi: %s
+`, contractText, question)
+
+    resp, err := model.GenerateContent(ctx, genai.Text(prompt))
+    if err != nil {
+        return "", fmt.Errorf("failed to generate content: %w", err)
+    }
+
+    if len(resp.Candidates) == 0 || resp.Candidates[0].Content == nil || len(resp.Candidates[0].Content.Parts) == 0 {
+        return "", fmt.Errorf("received empty response from Gemini API")
+    }
+
+    if txt, ok := resp.Candidates[0].Content.Parts[0].(genai.Text); ok {
+        return strings.TrimSpace(string(txt)), nil
+    }
+
+    return "", fmt.Errorf("failed to extract text from Gemini API response")
+}
