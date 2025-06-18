@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import FileUploader from './components/FileUploader';
 import LoadingSpinner from './components/LoadingSpinner';
 import ResultsDisplay from './components/ResultsDisplay';
+import FileInfo from './components/FileInfo';
 import { analyzeContract } from './api/analysisService';
 
 export default function App() {
@@ -36,6 +37,12 @@ export default function App() {
     }
   };
 
+  const handleRemoveFile = () => {
+    setFile(null);
+    setAnalysisResult(null);
+    setError(null);
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center">
       <div className="w-full max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-8 mt-8 mb-8">
@@ -43,6 +50,7 @@ export default function App() {
           Công cụ Phân tích & Tóm tắt Hợp đồng
         </h1>
         <FileUploader onFileSelected={handleFileSelected} isLoading={isLoading} />
+        {file && <FileInfo file={file} onRemove={handleRemoveFile} />}
         {isLoading && <LoadingSpinner />}
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center mt-4">
