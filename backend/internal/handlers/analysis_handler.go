@@ -12,12 +12,28 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
 type AnalysisResponse struct {
+	Summary        string   `json:"summary"`
+	KeyClauses     []string `json:"key_clauses"`
+	PotentialRisks []string `json:"potential_risks"`
+}
+
+type AnalysisListItem struct {
+	ID             uint      `json:"id"`
+	FileHash       string    `json:"file_hash"`
+	CreatedAt      time.Time `json:"created_at"`
+	SummaryPreview string    `json:"summary_preview"`
+}
+
+type AnalysisDetailResponse struct {
+	ID             uint     `json:"id"`
+	AnalysisID     uint     `json:"analysis_id"`
 	Summary        string   `json:"summary"`
 	KeyClauses     []string `json:"key_clauses"`
 	PotentialRisks []string `json:"potential_risks"`
@@ -78,7 +94,10 @@ func AnalyzeHandler(c *gin.Context) {
 	switch {
 	case strings.Contains(contentType, "pdf") || strings.HasSuffix(filename, ".pdf"):
 		textContent, err = services.ExtractTextFromPDF(fileReader)
-	// ... (các case khác)
+	case strings.Contains(contentType, "officedocument.wordprocessingml.document") || strings.HasSuffix(filename, ".docx"):
+		textContent, err = services.ExtractTextFromDOCX(fileReader)
+	case strings.Contains(contentType, "msword") || strings.HasSuffix(filename, ".doc"):
+		textContent, err = services.ExtractTextFromDOCX(fileReader)
 	default:
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Định dạng file không được hỗ trợ."})
 		return
@@ -110,29 +129,14 @@ func AnalyzeHandler(c *gin.Context) {
 		return
 	}
 
-	// 1. Tạo bản ghi chi tiết trước
-	detail := models.AnalysisDetail{
-		Summary:        analysisResp.Summary,
-		KeyClauses:     analysisResp.KeyClauses,
-		PotentialRisks: analysisResp.PotentialRisks,
+	// 1. Tạo bản ghi chính (analyses) trước
+	summaryPreview := analysisResp.Summary
+	if len(summaryPreview) > 200 {
+		summaryPreview = summaryPreview[:200]
 	}
-	if err := tx.Create(&detail).Error; err != nil {
-		tx.Rollback() // Nếu lỗi, hủy bỏ transaction
-		log.Printf("Failed to save analysis details: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save analysis details."})
-		return
-	}
-
-	// 2. Tạo bản ghi chính, liên kết với bản ghi chi tiết
 	analysisModel := models.Analysis{
-		FileHash: fileHash,
-		// GORM sẽ tự động điền AnalysisID vào bảng details dựa trên liên kết
-	}
-	if err := tx.Model(&analysisModel).Association("AnalysisDetail").Append(&detail); err != nil {
-		tx.Rollback()
-		log.Printf("Failed to create analysis association: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create analysis association."})
-		return
+		FileHash:       fileHash,
+		SummaryPreview: summaryPreview,
 	}
 	if err := tx.Create(&analysisModel).Error; err != nil {
 		tx.Rollback()
@@ -141,6 +145,19 @@ func AnalyzeHandler(c *gin.Context) {
 		return
 	}
 
+	// 2. Tạo bản ghi chi tiết (analysis_details) với AnalysisID vừa tạo
+	detail := models.AnalysisDetail{
+		AnalysisID:     analysisModel.ID,
+		Summary:        analysisResp.Summary,
+		KeyClauses:     analysisResp.KeyClauses,
+		PotentialRisks: analysisResp.PotentialRisks,
+	}
+	if err := tx.Create(&detail).Error; err != nil {
+		tx.Rollback()
+		log.Printf("Failed to save analysis details: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save analysis details."})
+		return
+	}
 
 	if err := tx.Commit().Error; err != nil {
 		log.Printf("Failed to commit transaction: %v", err)
@@ -162,4 +179,41 @@ func cleanAIResponse(s string) string {
 		s = strings.TrimSuffix(s, "```")
 	}
 	return strings.TrimSpace(s)
+}
+
+// GET /api/v1/analyses - Lấy danh sách analyses (lịch sử)
+func GetAnalyses(c *gin.Context) {
+	var analyses []models.Analysis
+	if err := database.DB.Order("created_at desc").Find(&analyses).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch analyses: " + err.Error()})
+		return
+	}
+	var result []AnalysisListItem
+	for _, a := range analyses {
+		result = append(result, AnalysisListItem{
+			ID:             a.ID,
+			FileHash:       a.FileHash,
+			CreatedAt:      a.CreatedAt,
+			SummaryPreview: a.SummaryPreview,
+		})
+	}
+	c.JSON(http.StatusOK, result)
+}
+
+// GET /api/v1/analyses/:id - Lấy chi tiết analysis
+func GetAnalysisDetail(c *gin.Context) {
+	id := c.Param("id")
+	var detail models.AnalysisDetail
+	if err := database.DB.Where("analysis_id = ?", id).First(&detail).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Analysis detail not found"})
+		return
+	}
+	resp := AnalysisDetailResponse{
+		ID:             detail.ID,
+		AnalysisID:     detail.AnalysisID,
+		Summary:        detail.Summary,
+		KeyClauses:     detail.KeyClauses,
+		PotentialRisks: detail.PotentialRisks,
+	}
+	c.JSON(http.StatusOK, resp)
 }

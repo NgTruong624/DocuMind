@@ -21,10 +21,13 @@ func Connect() (*gorm.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
-	// Auto-migrate the Analysis model
-	if err := db.AutoMigrate(&models.Analysis{}); err != nil {
+
+	// THAY ĐỔI: Thêm models.AnalysisDetail{} vào AutoMigrate
+	// GORM sẽ tự động tạo cả hai bảng `analyses` và `analysis_details`
+	if err := db.AutoMigrate(&models.Analysis{}, &models.AnalysisDetail{}); err != nil {
 		return nil, fmt.Errorf("auto-migration failed: %w", err)
 	}
+
 	DB = db
 	return db, nil
-} 
+}

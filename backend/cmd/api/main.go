@@ -48,7 +48,10 @@ func main() {
 		})
 	})
 
-	r.POST("/api/v1/analyze", handlers.AnalyzeHandler) 
+	r.POST("/api/v1/analyze", handlers.AnalyzeHandler)
+
+	r.GET("/api/v1/analyses", handlers.GetAnalyses)
+	r.GET("/api/v1/analyses/:id", handlers.GetAnalysisDetail)
 
 	log.Printf("Server starting on port %s", port)
 	r.Run(":" + port)
