@@ -32,21 +32,21 @@ func AnalyzeText(textContent string) (string, error) {
 
 	// Step 2: Construct the prompt
 	prompt := fmt.Sprintf(`
-		Analyze the following contract text and return the analysis as a single JSON string.
-		IMPORTANT: Your response must ONLY contain the JSON string, with no additional text, explanations, or markdown formatting.
+	Phân tích nội dung hợp đồng sau và trả về kết quả bằng tiếng Việt dưới dạng một chuỗi JSON duy nhất.
+	QUAN TRỌNG: Phản hồi của bạn CHỈ ĐƯỢC chứa chuỗi JSON, không có văn bản, giải thích hay định dạng markdown nào khác.
 
-		The JSON must follow this exact structure:
-		{
-			"summary": "A concise, professional summary of the contract's main points",
-			"key_clauses": ["List of the most important clauses as an array of strings"],
-			"potential_risks": ["List of potential risks or points of concern as an array of strings. Return empty array [] if none found"]
-		}
+	JSON phải tuân theo cấu trúc chính xác sau:
+	{
+		"summary": "Một bản tóm tắt chuyên nghiệp, ngắn gọn bằng tiếng Việt về các điểm chính của hợp đồng",
+		"key_clauses": ["Danh sách các điều khoản quan trọng nhất bằng tiếng Việt, dưới dạng một mảng các chuỗi"],
+		"potential_risks": ["Danh sách các rủi ro tiềm ẩn hoặc các điểm cần lưu ý bằng tiếng Việt, dưới dạng một mảng các chuỗi. Trả về mảng rỗng [] nếu không tìm thấy"]
+	}
 
-		Contract text to analyze:
-		---
-		%s
-		---
-	`, textContent)
+	Nội dung hợp đồng cần phân tích:
+	---
+	%s
+	---
+`, textContent)
 
 	// Step 3: Send request to AI
 	log.Println("Sending request to Gemini API...")

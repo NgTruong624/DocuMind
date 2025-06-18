@@ -24,7 +24,7 @@ export default function ResultsDisplay({ analysisResult }) {
               )
             }
           >
-            Summary
+            Tóm tắt
           </Tab>
           <Tab
             className={({ selected }) =>
@@ -36,7 +36,7 @@ export default function ResultsDisplay({ analysisResult }) {
               )
             }
           >
-            Key Clauses
+            Điều khoản chính
           </Tab>
           <Tab
             className={({ selected }) =>
@@ -48,34 +48,36 @@ export default function ResultsDisplay({ analysisResult }) {
               )
             }
           >
-            Risks
+            Rủi ro tiềm ẩn
           </Tab>
         </Tab.List>
         <Tab.Panels>
           <Tab.Panel>
             <div className="bg-slate-50 p-6 rounded-lg">
-              <h2 className="font-semibold text-xl text-slate-800 mb-3">General Summary</h2>
-              <p>{summary}</p>
+              <h2 className="font-semibold text-xl text-slate-800 mb-3">Tóm tắt chung</h2>
+              <p className="text-slate-700 leading-relaxed">{summary}</p>
             </div>
           </Tab.Panel>
           <Tab.Panel>
             <div className="mb-6">
-              <h2 className="font-semibold text-xl text-slate-800 mb-3">Key Clauses</h2>
-              <ul>
+              <h2 className="font-semibold text-xl text-slate-800 mb-3">Các điều khoản chính</h2>
+              <ul className="space-y-3">
                 {key_clauses.map((clause, idx) => (
-                  <li key={idx} className="mb-2">{clause}</li>
+                  <li key={idx} className="text-slate-700 bg-white p-4 rounded-lg shadow-sm">
+                    {clause}
+                  </li>
                 ))}
               </ul>
             </div>
           </Tab.Panel>
           <Tab.Panel>
             <div className="bg-red-50 border-l-4 border-red-400 p-6 rounded-lg">
-              <h2 className="font-semibold text-xl text-red-800 mb-3">Potential Risks</h2>
-              <ul>
+              <h2 className="font-semibold text-xl text-red-800 mb-3">Các rủi ro tiềm ẩn</h2>
+              <ul className="space-y-3">
                 {potential_risks.map((risk, idx) => (
-                  <li key={idx} className="text-red-900 flex items-start mb-2">
-                    <ExclamationTriangleIcon className="w-5 h-5 mr-3 text-red-500 flex-shrink-0" />
-                    {risk}
+                  <li key={idx} className="text-red-900 flex items-start bg-white/50 p-4 rounded-lg">
+                    <ExclamationTriangleIcon className="w-5 h-5 mr-3 text-red-500 flex-shrink-0 mt-1" />
+                    <span>{risk}</span>
                   </li>
                 ))}
               </ul>

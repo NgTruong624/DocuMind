@@ -65,8 +65,10 @@ func AnalyzeHandler(c *gin.Context) {
 	}
 
 	// 3. Parse chuỗi JSON từ AI vào struct
+	cleanedJSONString := cleanAIResponse(aiResultString) // Gọi hàm dọn dẹp
+
 	var analysisResp AnalysisResponse
-	err = json.Unmarshal([]byte(aiResultString), &analysisResp)
+	err = json.Unmarshal([]byte(cleanedJSONString), &analysisResp) // Dùng chuỗi đã được dọn dẹp
 	if err != nil {
 		log.Printf("Lỗi khi parse JSON từ AI: %v. \nChuỗi nhận được: %s", err, aiResultString)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse AI response."})
@@ -85,4 +87,18 @@ func AnalyzeHandler(c *gin.Context) {
 
 	// 5. Trả về kết quả có cấu trúc hoàn chỉnh cho frontend
 	c.JSON(http.StatusOK, analysisResp)
+}
+func cleanAIResponse(s string) string {
+    // Loại bỏ ```json ở đầu và ``` ở cuối
+    s = strings.TrimSpace(s)
+    if strings.HasPrefix(s, "```json") {
+        s = strings.TrimPrefix(s, "```json")
+        s = strings.TrimSuffix(s, "```")
+    }
+    // Đôi khi AI chỉ trả về ``` mà không có chữ json
+    if strings.HasPrefix(s, "```") {
+        s = strings.TrimPrefix(s, "```")
+        s = strings.TrimSuffix(s, "```")
+    }
+    return strings.TrimSpace(s)
 }

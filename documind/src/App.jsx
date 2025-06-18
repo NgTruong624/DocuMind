@@ -19,7 +19,18 @@ export default function App() {
       const result = await analyzeContract(selectedFile);
       setAnalysisResult(result);
     } catch (err) {
-      setError('Đã xảy ra lỗi khi phân tích hợp đồng.');
+      let errorMessage = 'Đã xảy ra lỗi khi phân tích hợp đồng.';
+      
+      if (err.response?.status === 413) {
+        errorMessage = 'File quá lớn. Vui lòng chọn file nhỏ hơn.';
+      } else if (err.response?.status === 415) {
+        errorMessage = 'Định dạng file không được hỗ trợ. Vui lòng chọn file PDF hoặc DOCX.';
+      } else if (err.response?.status === 500) {
+        errorMessage = 'File quá lớn. Vui lòng chọn file nhỏ hơn.';
+      }
+      
+      console.error('Analysis error:', err);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
