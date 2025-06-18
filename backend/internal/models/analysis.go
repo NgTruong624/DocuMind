@@ -7,11 +7,21 @@ import (
 	"github.com/lib/pq"
 )
 
+// Analysis là model cho bảng chính, chứa các thông tin nhẹ.
 type Analysis struct {
-	ID             uint           `gorm:"primaryKey" json:"id"`
-	Summary        string         `json:"summary"`
-	KeyClauses     pq.StringArray `gorm:"type:text[]" json:"key_clauses"`
-	PotentialRisks pq.StringArray `gorm:"type:text[]" json:"potential_risks"`
-	CreatedAt      time.Time      `json:"created_at"`
-	FileHash       string         `gorm:"uniqueIndex;not null" json:"file_hash"`
+	ID        uint      `gorm:"primaryKey"`
+	FileHash  string    `gorm:"type:varchar(64);uniqueIndex"`
+	CreatedAt time.Time
+
+	// GORM relation: Một Analysis sẽ có một AnalysisDetail
+	AnalysisDetail   AnalysisDetail `gorm:"foreignKey:AnalysisID"`
+}
+
+// AnalysisDetail chứa các dữ liệu văn bản dài.
+type AnalysisDetail struct {
+	ID             uint           `gorm:"primaryKey"`
+	AnalysisID     uint           // Khóa ngoại liên kết ngược lại với bảng Analysis
+	Summary        string         `gorm:"type:text"`
+	KeyClauses     pq.StringArray `gorm:"type:text[]"`
+	PotentialRisks pq.StringArray `gorm:"type:text[]"`
 }
