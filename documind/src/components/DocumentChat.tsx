@@ -14,23 +14,23 @@ interface Message {
 
 interface DocumentChatProps {
   documentSummary: string;
-  keyTerms: string[];
-  riskScore: string;
+  keyClauses?: string[];
+  potentialRisks?: string[];
   fileHash?: string;
   onClose?: () => void;
 }
 
 const DocumentChat: React.FC<DocumentChatProps> = ({ 
   documentSummary, 
-  keyTerms, 
-  riskScore, 
+  keyClauses = [], 
+  potentialRisks = [],
   fileHash,
   onClose 
 }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: `Hello! I've analyzed your contract. Here's a quick summary:\n\n**Risk Score:** ${riskScore}\n**Key Terms Found:** ${keyTerms.length}\n\nFeel free to ask me any questions about your contract, including specific clauses, risks, or terms you'd like me to explain.`,
+      content: `Hello! I've analyzed your contract. Here's a quick summary:\n\n**Summary:** ${documentSummary}\n**Key Clauses Found:** ${keyClauses.length}\n**Potential Risks Found:** ${potentialRisks.length}\n\nFeel free to ask me any questions about your contract, including specific clauses, risks, or terms you'd like me to explain.`,
       isUser: false,
       timestamp: new Date()
     }

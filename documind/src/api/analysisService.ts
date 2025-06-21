@@ -14,8 +14,8 @@ const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8080/
 // Định nghĩa kiểu dữ liệu trả về từ API phân tích hợp đồng
 export interface AnalyzeResult {
   summary: string;
-  keyTerms: string[];
-  riskScore?: string;
+  key_clauses?: string[];
+  potential_risks?: string[];
   file_hash?: string;
   [key: string]: any; // fallback cho các trường khác nếu có
 }
