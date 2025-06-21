@@ -30,7 +30,7 @@ const DocumentChat: React.FC<DocumentChatProps> = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: `Hello! I've analyzed your contract. Here's a quick summary:\n\n**Summary:** ${documentSummary}\n**Key Clauses Found:** ${keyClauses.length}\n**Potential Risks Found:** ${potentialRisks.length}\n\nFeel free to ask me any questions about your contract, including specific clauses, risks, or terms you'd like me to explain.`,
+      content: `Xin chào! Tôi đã phân tích hợp đồng của bạn. Dưới đây là tóm tắt nhanh:\n\n**Tóm tắt:** ${documentSummary}\n**Số điều khoản chính:** ${keyClauses.length}\n**Số rủi ro tiềm ẩn:** ${potentialRisks.length}\n\nBạn có thể hỏi tôi bất kỳ câu hỏi nào về hợp đồng của bạn, bao gồm các điều khoản cụ thể, rủi ro hoặc các thuật ngữ bạn muốn tôi giải thích.`,
       isUser: false,
       timestamp: new Date()
     }
@@ -69,7 +69,7 @@ const DocumentChat: React.FC<DocumentChatProps> = ({
         ...prev,
         {
           id: (prev.length + 2).toString(),
-          content: res.answer || 'No answer from AI.',
+          content: res.answer || 'Không có câu trả lời từ AI.',
           isUser: false,
           timestamp: new Date()
         }
@@ -97,8 +97,8 @@ const DocumentChat: React.FC<DocumentChatProps> = ({
               <FileText className="w-5 h-5 text-white" />
             </div>
             <div>
-              <CardTitle className="text-xl">Contract Assistant</CardTitle>
-              <p className="text-sm text-slate-600">Ask questions about your analyzed contract</p>
+              <CardTitle className="text-xl">Trợ lý hợp đồng</CardTitle>
+              <p className="text-sm text-slate-600">Đặt câu hỏi về hợp đồng đã được phân tích của bạn</p>
             </div>
           </div>
           {onClose && (
@@ -176,7 +176,7 @@ const DocumentChat: React.FC<DocumentChatProps> = ({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask about risks, terms, clauses, or anything else..."
+              placeholder="Hỏi về rủi ro, điều khoản, hoặc bất cứ điều gì khác..."
               className="flex-1"
               disabled={isLoading}
             />
@@ -189,7 +189,7 @@ const DocumentChat: React.FC<DocumentChatProps> = ({
             </Button>
           </div>
           <p className="text-xs text-slate-500 mt-2">
-            Press Enter to send • This AI assistant is based on your contract analysis
+            Nhấn Enter để gửi • Trợ lý AI này dựa trên phân tích hợp đồng của bạn
           </p>
         </div>
       </CardContent>
