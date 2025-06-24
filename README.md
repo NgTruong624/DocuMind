@@ -1,6 +1,6 @@
 # DocuMind
 
-DocuMind is an AI-powered contract analysis and summarization tool that helps legal professionals and businesses understand complex documents quickly. Upload PDF or DOCX files and get instant AI-powered summaries, key clause extraction, risk detection, and the ability to ask questions about your documents. All analyses are stored securely in a PostgreSQL database for future reference.
+DocuMind is an AI-powered contract analysis and summarization tool that helps legal professionals and businesses understand complex documents quickly. Upload PDF or DOCX files and get instant AI-powered summaries, key clause extraction, risk detection, and the ability to ask questions about your documents.
 
 ## ✨ Features
 
@@ -13,29 +13,6 @@ DocuMind is an AI-powered contract analysis and summarization tool that helps le
 - **📱 Modern UI**: Clean, responsive React interface with beautiful animations
 - **🔒 Enterprise Security**: Bank-level encryption ensures your sensitive documents stay private
 - **💾 Persistent Storage**: All analyses are saved to PostgreSQL database with caching for efficiency
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **React 18** with TypeScript
-- **Vite** for fast development and building
-- **Tailwind CSS** for styling
-- **Shadcn/ui** for beautiful, accessible components
-- **React Router** for navigation
-- **React Query** for data fetching and caching
-- **Lucide React** for icons
-- **React Hook Form** with Zod validation
-
-### Backend
-- **Go 1.24+** with Gin framework
-- **GORM** for database operations
-- **PostgreSQL** for data persistence
-- **Google Gemini AI API** for document analysis
-- **PDF & DOCX text extraction** libraries
-
-### Database
-- **PostgreSQL** with optimized schema for analysis storage
-- **Caching system** to avoid re-processing identical documents
 
 ## 🚀 Getting Started
 
