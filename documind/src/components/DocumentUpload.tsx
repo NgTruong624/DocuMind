@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import ErrorMessage from "@/components/ui/error-message";
 import DocumentChat from './DocumentChat';
 import { analyzeContract, AnalyzeResult } from '@/api/analysisService';
 
@@ -214,7 +215,9 @@ const DocumentUpload: React.FC = () => {
                   <span className="text-sm text-slate-500">PDF, DOC, DOCX supported</span>
                 </div>
               </label>
-              {error && <div className="text-red-600 mt-4">{error}</div>}
+              {error && (
+                <ErrorMessage message={error} />
+              )}
             </>
           )}
         </div>

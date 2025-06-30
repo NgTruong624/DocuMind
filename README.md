@@ -36,7 +36,7 @@ cd backend
 cp configs/.env.example configs/.env
 
 # Edit configs/.env with your credentials:
-# GEMINI_API_KEY=your_gemini_api_key_here
+# GEMINI_API_KEY=your_gemini_api_key
 # DATABASE_URL=host=localhost user=postgres password=yourpass dbname=documind_db port=5432 sslmode=disable
 # PORT=8080
 
@@ -149,6 +149,27 @@ If you encounter any issues or have questions:
 1. Check the [Issues](https://github.com/yourusername/documind/issues) page
 2. Create a new issue with detailed information
 3. Contact the maintainers
+
+## 🔧 Troubleshooting
+
+For common issues and solutions, see our [Troubleshooting Guide](TROUBLESHOOTING.md).
+
+### Common Issues:
+
+1. **API Quota Exceeded (Error 429)**
+   - Check your Google Gemini API quota
+   - Upgrade to Google AI Studio Pro if needed
+   - See detailed instructions in [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+
+2. **File Upload Issues**
+   - Ensure file is PDF, DOC, or DOCX format
+   - Check file size (recommended < 10MB)
+   - Verify file is not corrupted
+
+3. **Database Connection Issues**
+   - Verify PostgreSQL is running
+   - Check DATABASE_URL in .env file
+   - Ensure database exists and is accessible
 
 ---
 

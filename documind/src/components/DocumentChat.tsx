@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Send, Bot, User, FileText } from "lucide-react";
+import ErrorMessage from "@/components/ui/error-message";
 import { contractChat } from '@/api/analysisService';
 
 interface Message {
@@ -168,7 +169,9 @@ const DocumentChat: React.FC<DocumentChatProps> = ({
           <div ref={messagesEndRef} />
         </div>
         
-        {error && <div className="text-red-600 mb-2 text-sm">{error}</div>}
+        {error && (
+          <ErrorMessage message={error} />
+        )}
         
         <div className="p-4 border-t bg-white">
           <div className="flex gap-2">

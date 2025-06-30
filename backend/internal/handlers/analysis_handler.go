@@ -122,6 +122,19 @@ func AnalyzeHandler(c *gin.Context) {
 
 	aiResultString, err := services.AnalyzeText(textContent)
 	if err != nil {
+		// Kiểm tra lỗi quota API
+		if strings.Contains(err.Error(), "quota") || strings.Contains(err.Error(), "429") || strings.Contains(err.Error(), "exceeded") {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "API quota đã hết. Vui lòng thử lại sau hoặc liên hệ admin để nâng cấp quota."})
+			return
+		}
+		
+		// Kiểm tra lỗi API key
+		if strings.Contains(err.Error(), "API_KEY") || strings.Contains(err.Error(), "authentication") {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi xác thực API. Vui lòng kiểm tra cấu hình."})
+			return
+		}
+		
+		// Lỗi chung
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "AI analysis failed: " + err.Error()})
 		return
 	}
@@ -267,6 +280,19 @@ func ContractChatHandler(c *gin.Context) {
 
 	aiAnswer, err := services.AskContractQuestion(contractText, req.Question)
 	if err != nil {
+		// Kiểm tra lỗi quota API
+		if strings.Contains(err.Error(), "quota") || strings.Contains(err.Error(), "429") || strings.Contains(err.Error(), "exceeded") {
+			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "API quota đã hết. Vui lòng thử lại sau hoặc liên hệ admin để nâng cấp quota."})
+			return
+		}
+		
+		// Kiểm tra lỗi API key
+		if strings.Contains(err.Error(), "API_KEY") || strings.Contains(err.Error(), "authentication") {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Lỗi xác thực API. Vui lòng kiểm tra cấu hình."})
+			return
+		}
+		
+		// Lỗi chung
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "AI trả lời thất bại: " + err.Error()})
 		return
 	}

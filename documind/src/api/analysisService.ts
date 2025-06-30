@@ -49,7 +49,43 @@ export async function analyzeContract(file: File): Promise<AnalyzeResult> {
       response: error.response?.data,
       status: error.response?.status
     });
-    throw error;
+    
+    // Xử lý lỗi cụ thể
+    if (error.response?.status === 500) {
+      const errorMessage = error.response?.data?.error || error.message;
+      
+      // Kiểm tra lỗi quota API
+      if (errorMessage.includes('quota') || errorMessage.includes('429') || errorMessage.includes('exceeded')) {
+        throw new Error('API quota đã hết. Vui lòng thử lại sau hoặc liên hệ admin để nâng cấp quota.');
+      }
+      
+      // Kiểm tra lỗi khác
+      if (errorMessage.includes('AI analysis failed')) {
+        throw new Error('Lỗi phân tích AI. Vui lòng thử lại sau.');
+      }
+      
+      if (errorMessage.includes('Could not extract text')) {
+        throw new Error('Không thể đọc nội dung file. Vui lòng kiểm tra định dạng file.');
+      }
+      
+      if (errorMessage.includes('File upload failed')) {
+        throw new Error('Lỗi tải file lên. Vui lòng thử lại.');
+      }
+      
+      // Lỗi chung
+      throw new Error(`Lỗi server: ${errorMessage}`);
+    }
+    
+    if (error.response?.status === 400) {
+      throw new Error('Định dạng file không được hỗ trợ. Vui lòng sử dụng PDF, DOC hoặc DOCX.');
+    }
+    
+    if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+      throw new Error('Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet và thử lại.');
+    }
+    
+    // Lỗi mặc định
+    throw new Error('Đã xảy ra lỗi khi phân tích hợp đồng. Vui lòng thử lại sau.');
   }
 }
 
