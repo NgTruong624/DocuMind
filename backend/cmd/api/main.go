@@ -13,25 +13,33 @@ import (
 )
 
 func main() {
+	// Chỉ tải file .env nếu không ở trong môi trường production ("release")
 	if os.Getenv("GIN_MODE") != "release" {
 		err := godotenv.Load("configs/.env")
 		if err != nil {
-			log.Fatal("Error loading .env file")
+			// Thay vì làm sập chương trình, chỉ in ra một cảnh báo.
+			log.Println("Warning: .env file not found, using system environment variables.")
 		}
-	}
-
-	// Initialize database connection
-	_, dbErr := database.Connect()
-	if dbErr != nil {
-		log.Fatalf("Database connection failed: %v", dbErr)
 	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8090"
 	}
-	
+
 	r := gin.Default()
+
+	// Khởi tạo kết nối database trong một goroutine để không chặn việc khởi động server.
+	// Đây là chìa khóa để khắc phục lỗi "Timed Out" trên Render.
+	go func() {
+		log.Println("Attempting to connect to the database...")
+		_, dbErr := database.Connect()
+		if dbErr != nil {
+			log.Printf("!!! Asynchronous database connection failed: %v", dbErr)
+		} else {
+			log.Println("Database connection established successfully.")
+		}
+	}()
 
 	r.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -44,19 +52,23 @@ func main() {
 		c.Next()
 	})
 
+	// Endpoint health check cho Render
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
 		})
 	})
 
-	r.POST("/api/v1/analyze", handlers.AnalyzeHandler)
-
-	r.POST("/api/v1/contract-chat", handlers.ContractChatHandler)
-
-	r.GET("/api/v1/analyses", handlers.GetAnalyses)
-	r.GET("/api/v1/analyses/:id", handlers.GetAnalysisDetail)
+	// Các API endpoints của ứng dụng
+	api := r.Group("/api/v1")
+	{
+		api.POST("/analyze", handlers.AnalyzeHandler)
+		api.POST("/contract-chat", handlers.ContractChatHandler)
+		api.GET("/analyses", handlers.GetAnalyses)
+		api.GET("/analyses/:id", handlers.GetAnalysisDetail)
+	}
 
 	log.Printf("Server starting on port %s", port)
+	// Dòng này sẽ khởi động server ngay lập tức
 	r.Run(":" + port)
 }
