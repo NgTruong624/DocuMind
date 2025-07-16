@@ -9,7 +9,7 @@
 
 import axios from 'axios';
 
-const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8080/api/v1/analyze';
+const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:8090/api/v1/analyze';
 
 // Định nghĩa kiểu dữ liệu trả về từ API phân tích hợp đồng
 export interface AnalyzeResult {
@@ -98,7 +98,7 @@ export interface ContractChatParams {
 export async function contractChat({ fileHash, contractText, question }: ContractChatParams): Promise<ContractChatResponse> {
   try {
     const response = await axios.post<ContractChatResponse>(
-      ((import.meta as any).env.VITE_CHAT_API_URL || 'http://localhost:8080/api/v1/contract-chat'),
+      ((import.meta as any).env.VITE_CHAT_API_URL || 'http://localhost:8090/api/v1/contract-chat'),
       {
         file_hash: fileHash || '',
         contract_text: contractText || '',
