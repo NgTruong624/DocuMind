@@ -1,5 +1,7 @@
 # DocuMind
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-DocuMind-blue?style=for-the-badge)](https://documind-app.onrender.com)
+
 DocuMind is an AI-powered contract analysis and summarization tool that helps legal professionals and businesses understand complex documents quickly. Upload PDF or DOCX files and get instant AI-powered summaries, key clause extraction, risk detection, and the ability to ask questions about your documents.
 
 ## ✨ Features
@@ -13,6 +15,12 @@ DocuMind is an AI-powered contract analysis and summarization tool that helps le
 - **📱 Modern UI**: Clean, responsive React interface with beautiful animations
 - **🔒 Enterprise Security**: Bank-level encryption ensures your sensitive documents stay private
 - **💾 Persistent Storage**: All analyses are saved to PostgreSQL database with caching for efficiency
+
+## 🌐 Live Demo
+
+You can try DocuMind instantly without any setup:
+
+👉 [https://documind-app.onrender.com](https://documind-app.onrender.com)
 
 ## 🚀 Getting Started
 
@@ -64,7 +72,8 @@ npm run dev
 The frontend will start on `http://localhost:5173`
 
 ### 4. Access the Application
-Open [http://localhost:5173](http://localhost:5173) in your browser to start using DocuMind.
+- For local development, open [http://localhost:5173](http://localhost:5173) in your browser.
+- For the deployed app, visit [https://documind-app.onrender.com](https://documind-app.onrender.com).
 
 ## 🔧 Environment Variables
 
