@@ -13,9 +13,11 @@ import (
 )
 
 func main() {
-	err := godotenv.Load("configs/.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
+	if os.Getenv("GIN_MODE") != "release" {
+		err := godotenv.Load("configs/.env")
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
 	}
 
 	// Initialize database connection
