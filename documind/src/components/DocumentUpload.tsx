@@ -23,6 +23,7 @@ const DocumentUpload: React.FC = () => {
   const [modalContent, setModalContent] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isReUploading, setIsReUploading] = useState(false);
+  const [isReAnalyzing, setIsReAnalyzing] = useState(false);
 
   const showDetails = (title: string, content: string[] | undefined) => {
     if (content && content.length > 0) {
@@ -58,12 +59,14 @@ const DocumentUpload: React.FC = () => {
     setError(null);
 
     try {
+      setIsReAnalyzing(true);
       const result = await analyzeContract(file);
       setAnalysisResult(result);
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Đã xảy ra lỗi khi phân tích hợp đồng.');
     } finally {
       setIsReUploading(false);
+      setIsReAnalyzing(false);
     }
   };
 
@@ -102,6 +105,42 @@ const DocumentUpload: React.FC = () => {
   if (analysisResult) {
     return (
       <div className="space-y-6">
+        {/* Loading Overlay for Re-upload */}
+        {(isReUploading || isReAnalyzing) && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <Card className="max-w-md mx-auto">
+              <CardContent className="p-8">
+                <div className="text-center space-y-4">
+                  {isReUploading ? (
+                    <>
+                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                        <Upload className="w-8 h-8 text-blue-600 animate-pulse" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-slate-900">Đang tải lên...</h3>
+                        <p className="text-slate-600">Vui lòng đợi trong khi chúng tôi xử lý tài liệu của bạn</p>
+                      </div>
+                    </>
+                  ) : isReAnalyzing ? (
+                    <>
+                      <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto">
+                        <FileText className="w-8 h-8 text-indigo-600 animate-pulse" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-slate-900">Đang phân tích hợp đồng...</h3>
+                        <p className="text-slate-600">AI của chúng tôi đang đọc và phân tích tài liệu của bạn</p>
+                        <div className="w-48 h-2 bg-slate-200 rounded-full mx-auto mt-4">
+                          <div className="h-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full animate-pulse" style={{ width: '70%' }}></div>
+                        </div>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="sm:max-w-[625px]">
             <DialogHeader>
@@ -147,9 +186,9 @@ const DocumentUpload: React.FC = () => {
                     onClick={() => document.getElementById('re-upload-input')?.click()}
                     variant="outline"
                     size="sm"
-                    disabled={isReUploading}
+                    disabled={isReUploading || isReAnalyzing}
                   >
-                    {isReUploading ? 'Đang tải lên...' : 'Tải lên tài liệu khác'}
+                    {isReUploading || isReAnalyzing ? 'Đang xử lý...' : 'Tải lên tài liệu khác'}
                   </Button>
                 </div>
               </div>
